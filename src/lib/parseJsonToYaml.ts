@@ -1,14 +1,25 @@
 import { stringify } from 'json2yaml';
 
-export const getProperties = (data: any) => {
+export const getProperties = (
+  value: any,
+  required: boolean
+) => {
+  const data: { [k: string]: any } = {};
+
+  if (required) {
+    data.required = Object.keys(value).map(
+      (v) => `{{${v}}}`
+    );
+  }
+
   return {
-    required: Object.keys(data).map((v) => `{{${v}}}`),
+    ...data,
     properties: {
       ...Object.fromEntries(
-        Object.entries(data).map(([k, v]) => [
+        Object.entries(value).map(([k, v]) => [
           k,
           {
-            ...getTypeData(v),
+            ...getTypeData(v, required),
             example: v,
           },
         ])
@@ -17,7 +28,10 @@ export const getProperties = (data: any) => {
   };
 };
 
-const getTypeData = (value: any): { [k: string]: any } => {
+const getTypeData = (
+  value: any,
+  required: boolean
+): { [k: string]: any } => {
   if (typeof value === 'number') {
     return value.toString().split('.').length > 1
       ? {
@@ -33,14 +47,14 @@ const getTypeData = (value: any): { [k: string]: any } => {
   if (value instanceof Array) {
     return {
       type: '{{array}}',
-      items: getTypeData(value[0]),
+      items: getTypeData(value[0] ?? '', required),
     };
   }
 
   if (value instanceof Object) {
     return {
       type: '{{object}}',
-      ...getProperties(value),
+      ...getProperties(value, required),
     };
   }
 
@@ -62,11 +76,14 @@ const getTypeData = (value: any): { [k: string]: any } => {
   };
 };
 
-export const parseJsonToYaml = (jsonString: string) => {
+export const parseJsonToYaml = (
+  jsonString: string,
+  required: boolean
+) => {
   const data = JSON.parse(jsonString);
 
   return stringify({
-    ...getProperties(data),
+    ...getProperties(data, required),
   })
     .replaceAll('"{{', '')
     .replaceAll('}}"', '');
