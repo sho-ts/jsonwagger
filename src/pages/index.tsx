@@ -1,19 +1,24 @@
 import type { OnMount } from '@monaco-editor/react';
 import type { editor } from 'monaco-editor/esm/vs/editor/editor.api';
 
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { parseJsonToYaml } from '@/lib/parseJsonToYaml';
 
 import Head from 'next/head';
-import { Flex, Button } from '@mantine/core';
+import { Flex, Button, Switch, Stack } from '@mantine/core';
 import { Editor } from '@/components/parts';
 import { Layout } from '@/components/layouts';
 
 export default function Home() {
+  const [required, setRequired] = useState(true);
   const jsonEditorRef =
     useRef<editor.IStandaloneCodeEditor>();
   const yamlEditorRef =
     useRef<editor.IStandaloneCodeEditor>();
+
+  const handleRequiredToggle = () => {
+    setRequired((prev) => !prev);
+  };
 
   const handleJsonMount: OnMount = (editor) => {
     jsonEditorRef.current = editor;
@@ -26,7 +31,8 @@ export default function Home() {
   const handleSubmit = () => {
     try {
       const yaml = parseJsonToYaml(
-        jsonEditorRef.current!.getValue() ?? '{}'
+        jsonEditorRef.current!.getValue() ?? '{}',
+        required
       );
 
       yamlEditorRef.current!.setValue(yaml);
@@ -63,16 +69,23 @@ export default function Home() {
             title="JSON"
             onMount={handleJsonMount}
             defaultLanguage="json"
-            defaultValue={`{\n  "userId": "bfc19bf4-a964-11ed-afa1-0242ac120002",\n  "userName": "Mike",\n  "avatar": "aaaa",\n  "createdAt": "2022-11-11",\n  "updatedAt": "2022-11-11",\n  "age": 18\n}`}
+            defaultValue={`{\n  "userId": "bfc19bf4-a964-11ed-afa1-0242ac120002",\n  "userName": "Cat",\n  "avatar": "https://placehold.jp/150x150.png",\n  "age": 18,\n  "createdAt": "2022-11-11",\n  "updatedAt": "2022-11-11"\n}`}
           />
-          <Button
-            variant="outline"
-            radius="xl"
-            sx={{ flexShrink: 0 }}
-            onClick={handleSubmit}
-          >
-            Convert
-          </Button>
+          <Stack sx={{ flexShrink: 0 }}>
+            <Switch
+              label="Required"
+              size="md"
+              checked={required}
+              onChange={handleRequiredToggle}
+            />
+            <Button
+              variant="outline"
+              radius="xl"
+              onClick={handleSubmit}
+            >
+              Convert
+            </Button>
+          </Stack>
           <Editor
             title="Swagger"
             defaultLanguage="yaml"
