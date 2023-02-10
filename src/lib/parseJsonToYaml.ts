@@ -19,7 +19,7 @@ export const getProperties = (data: any) => {
 
 const getTypeData = (value: any): { [k: string]: any } => {
   if (typeof value === 'number') {
-    return value.toString().split('.').length > 0
+    return value.toString().split('.').length > 1
       ? {
           type: '{{number}}',
           format: '{{float}}',
